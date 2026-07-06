@@ -1,0 +1,42 @@
+name: Build AltTab v10.12.0 patched
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    env:
+      VERSION_FILE: VERSION.txt
+      FEEDBACK_TOKEN: ''
+      APPCENTER_SECRET: ''
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode
+        run: |
+          set -euxo pipefail
+          XCODE_APP="$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
+          sudo xcode-select -s "$XCODE_APP/Contents/Developer"
+          xcodebuild -version
+      - name: Set app version
+        run: |
+          set -euxo pipefail
+          echo '10.12.0' > VERSION.txt
+          scripts/replace_environment_variables_in_app.sh
+      - name: Create CI signing certificate
+        run: scripts/codesign/setup_ci_pr.sh
+      - name: Build Debug app
+        run: |
+          set -euxo pipefail
+          set -o pipefail && xcodebuild -workspace alt-tab-macos.xcworkspace -scheme Debug -configuration Debug -derivedDataPath DerivedData | scripts/xcbeautify
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' DerivedData/Build/Products/Debug/AltTab.app/Contents/Info.plist
+      - name: Package artifact
+        run: |
+          set -euxo pipefail
+          ditto -c -k --keepParent DerivedData/Build/Products/Debug/AltTab.app AltTab-v10.12.0-patched-no-screen-prompt.zip
+          shasum -a 256 AltTab-v10.12.0-patched-no-screen-prompt.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AltTab-v10.12.0-patched-no-screen-prompt
+          path: AltTab-v10.12.0-patched-no-screen-prompt.zip
+          if-no-files-found: error
