@@ -101,10 +101,10 @@ class AXCallScheduler {
     }
 
     private func queueForPid(_ pid: pid_t?) -> LabeledOperationQueue {
-        if let pid, unresponsivePids.contains(pid) {
-            return retryQueue
-        }
-        return fastQueue
+        lock.lock()
+        let unresponsive = pid.map { unresponsivePids.contains($0) } ?? false
+        lock.unlock()
+        return unresponsive ? retryQueue : fastQueue
     }
 
     private func fireThrottled(key: String, file: String, function: String, line: Int) {
