@@ -313,7 +313,7 @@ class ControlsTab {
         let gestureSeparator = shortcutSeparatorView()
         let gestureRow = ShortcutSidebarRow()
         gestureRow.onClick = { _, _ in selectGesture() }
-        gestureRow.onMouseEntered = { _, _ in setHoveredShortcutRow(gestureRow) }
+        gestureRow.onMouseEntered = { [weak gestureRow] _, _ in setHoveredShortcutRow(gestureRow) }
         gestureRow.onMouseExited = { _, _ in setHoveredShortcutRow(nil) }
         gestureSidebarRow = gestureRow
         listContainer.addSubview(shortcutsSection)
@@ -444,7 +444,7 @@ class ControlsTab {
             row.setContent(shortcutTitle(index), shortcutSummary(index))
             row.setSelected(index == selectedShortcutIndex && selectedShortcutIndex != gestureSelectionIndex)
             row.onClick = { _, _ in selectShortcut(index) }
-            row.onMouseEntered = { _, _ in setHoveredShortcutRow(row) }
+            row.onMouseEntered = { [weak row] _, _ in setHoveredShortcutRow(row) }
             row.onMouseExited = { _, _ in setHoveredShortcutRow(nil) }
             rows.addArrangedSubview(row)
             row.widthAnchor.constraint(equalTo: rows.widthAnchor).isActive = true
